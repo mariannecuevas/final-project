@@ -23,6 +23,7 @@
     "deploy": "git push --force origin main:pub"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "husky": "^8.0.3",
     "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.1",
