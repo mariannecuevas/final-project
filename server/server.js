@@ -53,7 +53,7 @@ app.get('/api/spotify/token', async (req, res) => {
     'base64'
   );
 
-  const requestOptions = {
+  const authParams = {
     method: 'POST',
     headers: {
       Authorization: `Basic ${authString}`,
@@ -63,7 +63,7 @@ app.get('/api/spotify/token', async (req, res) => {
   };
 
   try {
-    const response = await fetch(tokenEndpoint, requestOptions);
+    const response = await fetch(tokenEndpoint, authParams);
 
     if (!response.ok) {
       throw new Error('Failed to fetch access token');

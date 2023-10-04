@@ -33,7 +33,7 @@ function SearchPage({ accessToken }) {
   };
 
   return (
-    <div className="container">
+    <div className="container" style={{ marginTop: '25vh' }}>
       <div className="row">
         <div className="col-md-10 offset-md-1">
           <SearchBar onSearch={handleSearch} />

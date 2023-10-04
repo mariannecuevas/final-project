@@ -1,0 +1,23 @@
+.btn-primary {
+  background-color: #1c6f6f;
+  border-color: #1c6f6f;
+}
+
+.rounded-start {
+  border-top-left-radius: 25px;
+  border-bottom-left-radius: 25px;
+}
+
+.rounded-end {
+  border-top-right-radius: 25px;
+  border-bottom-right-radius: 25px;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+}
+
+.form-control {
+  height: 3rem;
+  padding-left: 1rem;
+}
