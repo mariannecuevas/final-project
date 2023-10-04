@@ -1,35 +1,30 @@
-import { useEffect, useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
+import React, { useState, useEffect } from 'react';
+import SearchPage from '../components/SearchPage/SearchPage';
 import './App.css';
 
 export default function App() {
-  const [serverData, setServerData] = useState('');
+  const [accessToken, setAccessToken] = useState('');
 
   useEffect(() => {
-    async function readServerData() {
-      const resp = await fetch('/api/hello');
-      const data = await resp.json();
-
-      console.log('Data from server:', data);
-
-      setServerData(data.message);
-    }
-
-    readServerData();
+    fetch('http://localhost:5173/api/spotify/token')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch access token');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setAccessToken(data.access_token);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
   }, []);
-
   return (
     <>
       <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <SearchPage accessToken={accessToken} />
       </div>
-      <h1>{serverData}</h1>
     </>
   );
 }

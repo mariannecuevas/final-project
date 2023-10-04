@@ -3,6 +3,7 @@ import 'dotenv/config';
 import express from 'express';
 import pg from 'pg';
 import { ClientError, errorMiddleware } from './lib/index.js';
+import cors from 'cors';
 
 const connectionString =
   process.env.DATABASE_URL ||
@@ -16,7 +17,7 @@ const db = new pg.Pool({
 });
 
 const app = express();
-
+app.use(cors());
 // Create paths for static directories
 const reactStaticDir = new URL('../client/dist', import.meta.url).pathname;
 const uploadsStaticDir = new URL('public', import.meta.url).pathname;
@@ -41,6 +42,132 @@ app.get('/api/hello', (req, res) => {
  * Catching everything that doesn't match a route and serving index.html allows
  * React Router to manage the routing.
  */
+
+app.get('/api/spotify/token', async (req, res) => {
+  const clientId = process.env.CLIENT_ID;
+  const clientSecret = process.env.CLIENT_SECRET;
+
+  const tokenEndpoint = 'https://accounts.spotify.com/api/token';
+
+  const authString = Buffer.from(`${clientId}:${clientSecret}`).toString(
+    'base64'
+  );
+
+  const authParams = {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${authString}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
+  };
+
+  try {
+    const response = await fetch(tokenEndpoint, authParams);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch access token');
+    }
+
+    const data = await response.json();
+
+    res.status(200).json({ access_token: data.access_token });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/search/:searchInput', async (req, res) => {
+  const { searchInput } = req.params;
+
+  try {
+    if (!searchInput) {
+      throw new Error('Search input is empty');
+    }
+
+    const accessToken = await getAccessToken();
+    const artistId = await getArtistId(searchInput, accessToken);
+    const albums = await getArtistAlbums(artistId, accessToken);
+    res.json({ albums });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+async function getAccessToken() {
+  const clientId = process.env.CLIENT_ID;
+  const clientSecret = process.env.CLIENT_SECRET;
+
+  const authParams = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}`,
+  };
+
+  const response = await fetch(
+    'https://accounts.spotify.com/api/token',
+    authParams
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch access token');
+  }
+
+  const data = await response.json();
+  return data.access_token;
+}
+
+async function getArtistId(searchInput, accessToken) {
+  const searchParams = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + accessToken,
+    },
+  };
+
+  const response = await fetch(
+    'https://api.spotify.com/v1/search?q=' +
+      encodeURIComponent(searchInput) +
+      '&type=artist',
+    searchParams
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch artist ID');
+  }
+
+  const data = await response.json();
+  const artistID = data.artists.items[0].id;
+  return artistID;
+}
+
+async function getArtistAlbums(artistId, accessToken) {
+  const searchParams = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + accessToken,
+    },
+  };
+
+  const response = await fetch(
+    `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album&market=US&limit=50`,
+    searchParams
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch artist albums');
+  }
+
+  const data = await response.json();
+  return data.items;
+}
+
 app.get('*', (req, res) => res.sendFile(`${reactStaticDir}/index.html`));
 
 app.use(errorMiddleware);
