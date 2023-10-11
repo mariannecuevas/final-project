@@ -1,6 +1,10 @@
 import React from 'react';
 
-function AlbumList({ albums }) {
+function AlbumList({ albums, onAlbumSelect }) {
+  const handleSelectedAlbum = (album) => {
+    onAlbumSelect(album);
+  };
+
   return (
     <div className="row">
       <div className="col d-flex flex-wrap">
@@ -12,7 +16,9 @@ function AlbumList({ albums }) {
                 margin: '0',
                 padding: '0',
                 height: '100%',
-              }}>
+                cursor: 'pointer',
+              }}
+              onClick={() => handleSelectedAlbum(album)}>
               <img
                 src={album.images[0].url}
                 className="card-img-top"
