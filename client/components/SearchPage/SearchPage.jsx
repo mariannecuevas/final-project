@@ -47,16 +47,39 @@ function SearchPage({ accessToken }) {
     setRating(event.target.value);
   };
 
-  const handleSubmitRating = () => {
-    console.log(
-      'Album Name:',
-      selectedAlbum.name,
-      '; Submitted Rating:',
+  const handleSubmitRating = async (event) => {
+    event.preventDefault();
+    if (!rating || !comment) {
+      return;
+    }
+
+    const reviewData = {
+      albumImg: selectedAlbum.images[1].url,
+      albumName: selectedAlbum.name,
+      artist: selectedAlbum.artists[0].name,
       rating,
-      '; Comment:',
-      comment
-    );
-    setShowModal(false);
+      comment,
+    };
+
+    try {
+      const response = await fetch('http://localhost:8080/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit review');
+      }
+
+      const data = await response.json();
+      console.log(data);
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   const handleCloseModal = () => {
@@ -121,7 +144,8 @@ function SearchPage({ accessToken }) {
                   id="ratingDropdown"
                   value={rating}
                   onChange={handleRatingChange}
-                  className="form-control">
+                  className="form-control"
+                  required>
                   <option value="">Select a Rating</option>
                   <option value="1">1 Star</option>
                   <option value="2">2 Stars</option>
@@ -136,7 +160,8 @@ function SearchPage({ accessToken }) {
                   className="form-control"
                   rows="5"
                   placeholder="Write your comment here..."
-                  style={{ marginTop: '1rem' }}></textarea>
+                  style={{ marginTop: '1rem' }}
+                  required></textarea>
               </div>
               <div className="modal-footer">
                 <button
