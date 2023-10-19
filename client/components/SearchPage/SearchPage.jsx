@@ -54,9 +54,9 @@ function SearchPage({ accessToken }) {
     }
 
     const reviewData = {
-      albumImg: selectedAlbum.images[1].url,
       albumName: selectedAlbum.name,
       artist: selectedAlbum.artists[0].name,
+      albumImg: selectedAlbum.images[1].url,
       rating,
       comment,
     };

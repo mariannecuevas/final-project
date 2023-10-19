@@ -19,9 +19,9 @@ CREATE TABLE "public"."users" (
 CREATE TABLE "public"."albumReviews" (
 	"reviewId" serial NOT NULL,
 	"userId" integer,
-	"albumImg" varchar(255) NOT NULL,
 	"albumName" varchar(255) NOT NULL,
 	"artist" varchar(255) NOT NULL,
+  "albumImg" varchar(255) NOT NULL,
 	"rating" integer NOT NULL,
 	"comment" TEXT NOT NULL,
 	"createdAt" timestamptz(6) DEFAULT now() NOT NULL,
@@ -34,9 +34,9 @@ CREATE TABLE "public"."albumReviews" (
 CREATE TABLE "public"."bookmarks" (
 	"bookmarkId" serial NOT NULL,
 	"userId" integer NOT NULL,
-	"albumImg" varchar(255) NOT NULL,
 	"albumName" varchar(255) NOT NULL,
 	"artist" varchar(255) NOT NULL,
+  "albumImg" varchar(255) NOT NULL,
 	"createdAt" timestamptz(6) DEFAULT now() NOT NULL,
 	CONSTRAINT "bookmarks_pk" PRIMARY KEY ("bookmarkId")
 ) WITH (

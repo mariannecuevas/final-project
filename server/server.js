@@ -184,18 +184,18 @@ app.get('/reviews', async (req, res) => {
 
 app.post('/reviews', async (req, res) => {
   try {
-    const { albumImg, albumName, artist, rating, comment } = req.body;
+    const { albumName, artist, albumImg, rating, comment } = req.body;
 
     if (!rating || !comment) {
       throw new ClientError(400, 'Rating and comment are required fields');
     }
 
     const sql = `
-      INSERT into "albumReviews" ("albumImg", "albumName", "artist", "rating", "comment")
+      INSERT into "albumReviews" ("albumName", "artist", "albumImg", "rating", "comment")
       VALUES ($1, $2, $3, $4, $5)
       RETURNING *`;
 
-    const params = [albumImg, albumName, artist, rating, comment];
+    const params = [albumName, artist, albumImg, rating, comment];
     const result = await db.query(sql, params);
     const review = result.rows[0];
     res.status(200).json(review);
