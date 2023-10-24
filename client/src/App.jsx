@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import SearchPage from '../components/SearchPage/SearchPage';
 import './App.css';
+import '../components/AppDrawer.css';
+import AppDrawer from '../components/AppDrawer';
 
 export default function App() {
   const [accessToken, setAccessToken] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+
+  const menuItems = [
+    { id: 1, title: 'Home' },
+    { id: 2, title: 'Reviews' },
+  ];
+
+  const menuHeading = 'Menu';
+
+  function handleToggle() {
+    setIsOpen(!isOpen);
+  }
 
   useEffect(() => {
     fetch('http://localhost:5173/api/spotify/token')
@@ -22,6 +36,15 @@ export default function App() {
   }, []);
   return (
     <>
+      <div className={`App ${isOpen ? 'open' : ''}`}>
+        <AppDrawer
+          isOpen={isOpen}
+          menuHeading={menuHeading}
+          menuItems={menuItems}
+          handleToggle={handleToggle}
+        />
+        {isOpen && <div className="shade" onClick={handleToggle} />}
+      </div>
       <div>
         <SearchPage accessToken={accessToken} />
       </div>
