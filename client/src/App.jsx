@@ -3,14 +3,16 @@ import SearchPage from '../components/SearchPage/SearchPage';
 import './App.css';
 import '../components/AppDrawer.css';
 import AppDrawer from '../components/AppDrawer';
+import { Routes, Route } from 'react-router-dom';
+import AlbumReviews from '../components/AlbumReviewsPage';
 
 export default function App() {
   const [accessToken, setAccessToken] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { id: 1, title: 'Home' },
-    { id: 2, title: 'Reviews' },
+    { id: 1, title: 'Home', path: '/' },
+    { id: 2, title: 'Reviews', path: '/albumreviews' },
   ];
 
   const menuHeading = 'Menu';
@@ -44,9 +46,16 @@ export default function App() {
           handleToggle={handleToggle}
         />
         {isOpen && <div className="shade" onClick={handleToggle} />}
-      </div>
-      <div>
-        <SearchPage accessToken={accessToken} />
+
+        <div>
+          <Routes>
+            <Route
+              path="/"
+              element={<SearchPage accessToken={accessToken} />}
+            />
+            <Route path="albumreviews" element={<AlbumReviews />} />
+          </Routes>
+        </div>
       </div>
     </>
   );
