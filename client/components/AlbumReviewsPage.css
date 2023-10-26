@@ -1,0 +1,16 @@
+.review-container {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  font-family: 'Open Sans', sans-serif;
+  margin: 0 auto;
+}
+
+h3 {
+  font-family: roboto, sans-serif;
+  margin-bottom: 25px;
+}
+
+.review-details {
+  margin: 35px;
+}
