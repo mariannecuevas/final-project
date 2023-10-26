@@ -21,7 +21,7 @@ function AlbumReviews() {
   }, []);
 
   return (
-    <div className="review-container" style={{ marginTop: '15vh' }}>
+    <div className="review-container" style={{ marginTop: '10vh' }}>
       <div className="row">
         <div className="col">
           <h3>Album Reviews</h3>
