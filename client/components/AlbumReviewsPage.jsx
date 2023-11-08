@@ -38,7 +38,9 @@ function AlbumReviews() {
                   alt={`Cover for ${review.albumName}`}
                 />
                 <div className="review-details">
-                  <i className="fas fa-edit float-right"></i>
+                  <i
+                    className="fas fa-edit float-right"
+                    style={{ cursor: 'pointer' }}></i>
                   <p className="text-left">
                     <strong>Artist:</strong> {review.artist}
                   </p>

@@ -45,45 +45,6 @@ function SearchPage({ accessToken }) {
     setComment('');
   };
 
-  const handleRatingChange = (event) => {
-    setRating(event.target.value);
-  };
-
-  const handleSubmitRating = async (event) => {
-    event.preventDefault();
-    if (!rating || !comment) {
-      return;
-    }
-
-    const reviewData = {
-      albumName: selectedAlbum.name,
-      artist: selectedAlbum.artists[0].name,
-      albumImg: selectedAlbum.images[1].url,
-      rating,
-      comment,
-    };
-
-    try {
-      const response = await fetch('http://localhost:8080/reviews', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(reviewData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit review');
-      }
-
-      const data = await response.json();
-      console.log(data);
-      setShowModal(false);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
   const handleCloseModal = () => {
     setShowModal(false);
     setRating('');
@@ -102,16 +63,18 @@ function SearchPage({ accessToken }) {
           <AlbumList albums={albums} onAlbumSelect={handleAlbumSelection} />
         </div>
       </div>
-      <ReviewModal
-        selectedAlbum={selectedAlbum}
-        showModal={showModal}
-        handleCloseModal={handleCloseModal}
-        rating={rating}
-        handleRatingChange={handleRatingChange}
-        comment={comment}
-        setComment={setComment}
-        handleSubmitRating={handleSubmitRating}
-      />
+      {showModal && selectedAlbum && (
+        <ReviewModal
+          selectedAlbum={selectedAlbum}
+          showModal={showModal}
+          handleCloseModal={handleCloseModal}
+          rating={rating}
+          setRating={setRating}
+          comment={comment}
+          modalTitle="Review an Album"
+          setComment={setComment}
+        />
+      )}
     </div>
   );
 }
