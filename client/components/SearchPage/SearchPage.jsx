@@ -43,6 +43,7 @@ function SearchPage({ accessToken }) {
     setShowModal(true);
     setRating('');
     setComment('');
+    console.log(album);
   };
 
   const handleSubmit = async (reviewData) => {
@@ -80,14 +81,13 @@ function SearchPage({ accessToken }) {
       {showModal && selectedAlbum && (
         <ReviewModal
           selectedAlbum={selectedAlbum}
-          showModal={showModal}
           handleCloseModal={() => setShowModal(false)}
           rating={rating}
           setRating={setRating}
           comment={comment}
           modalTitle="Review an Album"
           setComment={setComment}
-          isSearchPage={true}
+          isEditMode={false}
           handleSubmit={handleSubmit}
         />
       )}

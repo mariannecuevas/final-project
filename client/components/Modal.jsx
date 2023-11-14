@@ -1,6 +1,7 @@
 import React from 'react';
 
 function ReviewModal({
+  selectedReview,
   selectedAlbum,
   handleCloseModal,
   rating,
@@ -23,13 +24,25 @@ function ReviewModal({
       return;
     }
 
-    const reviewData = {
-      albumName: selectedAlbum.name,
-      artist: selectedAlbum.artists[0].name,
-      albumImg: selectedAlbum.images[1].url,
-      rating,
-      comment,
-    };
+    let reviewData;
+
+    if (selectedReview) {
+      reviewData = {
+        albumName: selectedReview.albumName,
+        artist: selectedReview.artist,
+        albumImg: selectedReview.albumImg,
+        rating,
+        comment,
+      };
+    } else if (selectedAlbum) {
+      reviewData = {
+        albumName: selectedAlbum.name,
+        artist: selectedAlbum.artists[0]?.name,
+        albumImg: selectedAlbum.images[1]?.url,
+        rating,
+        comment,
+      };
+    }
 
     await handleSubmit(reviewData);
 
@@ -59,22 +72,36 @@ function ReviewModal({
             <div className="modal-body">
               <div className="row mx-auto">
                 <img
-                  src={selectedAlbum.images[1].url}
+                  src={
+                    selectedReview
+                      ? selectedReview.albumImg
+                      : selectedAlbum.images[1]?.url
+                  }
                   className="img-thumbnail mx-auto"
-                  alt={`Cover for ${selectedAlbum.name}`}
+                  alt={`Cover for ${
+                    selectedReview
+                      ? selectedReview.albumName
+                      : selectedAlbum.name
+                  }`}
                 />
               </div>
               <div className="row mx-auto" style={{ paddingTop: '2rem' }}>
                 <div className="col-md-12">
                   <p className="text-left">
-                    <strong>Album:</strong> {selectedAlbum.name}
+                    <strong>Album:</strong>{' '}
+                    {selectedReview
+                      ? selectedReview.albumName
+                      : selectedAlbum.name}
                   </p>
                 </div>
               </div>
               <div className="row mx-auto">
                 <div className="col-md-12">
                   <p className="text-left">
-                    <strong>Artist:</strong> {selectedAlbum.artists[0].name}
+                    <strong>Artist:</strong>{' '}
+                    {selectedReview
+                      ? selectedReview.artist
+                      : selectedAlbum.artists[0]?.name}
                   </p>
                 </div>
               </div>

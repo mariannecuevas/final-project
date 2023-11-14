@@ -26,6 +26,7 @@ function AlbumReviews() {
   }, []);
 
   const openEditModal = (review) => {
+    console.log('Selected Review:', review);
     setSelectedReview(review);
     setShowModal(true);
     setRating(review.rating);
@@ -97,12 +98,12 @@ function AlbumReviews() {
       </div>
       {showModal && (
         <ReviewModal
-          selectedAlbum={selectedReview}
+          selectedReview={selectedReview}
           handleCloseModal={() => setShowModal(false)}
           rating={rating}
           setRating={setRating}
-          modalTitle="Edit Review"
           comment={comment}
+          modalTitle="Edit Review"
           setComment={setComment}
           isEditMode={true}
           handleSubmit={handleEditSubmit}
