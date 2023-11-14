@@ -8,12 +8,16 @@ function ReviewModal({
   modalTitle,
   comment,
   setComment,
+  isEditMode,
+  handleSubmit,
 }) {
+  const buttonText = isEditMode ? 'Update' : 'Submit';
+
   const handleRatingChange = (event) => {
     setRating(event.target.value);
   };
 
-  const handleSubmit = async (event) => {
+  const handleModalSubmit = async (event) => {
     event.preventDefault();
     if (!rating || !comment) {
       return;
@@ -27,24 +31,8 @@ function ReviewModal({
       comment,
     };
 
-    try {
-      const response = await fetch('http://localhost:8080/reviews', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(reviewData),
-      });
+    await handleSubmit(reviewData);
 
-      if (!response.ok) {
-        throw new Error('Failed to submit review');
-      }
-
-      const data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
     handleCloseModal();
   };
 
@@ -118,8 +106,8 @@ function ReviewModal({
                 type="button"
                 className="btn btn-primary mx-auto"
                 style={{ fontFamily: 'roboto' }}
-                onClick={handleSubmit}>
-                Submit
+                onClick={handleModalSubmit}>
+                {buttonText}
               </button>
             </div>
           </div>

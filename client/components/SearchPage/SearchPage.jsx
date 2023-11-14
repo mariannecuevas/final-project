@@ -45,10 +45,24 @@ function SearchPage({ accessToken }) {
     setComment('');
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setRating('');
-    setComment('');
+  const handleSubmit = async (reviewData) => {
+    try {
+      const response = await fetch('http://localhost:8080/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit review');
+      }
+      const data = await response.json();
+      console.log('Submitted review data:', data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   return (
@@ -67,12 +81,14 @@ function SearchPage({ accessToken }) {
         <ReviewModal
           selectedAlbum={selectedAlbum}
           showModal={showModal}
-          handleCloseModal={handleCloseModal}
+          handleCloseModal={() => setShowModal(false)}
           rating={rating}
           setRating={setRating}
           comment={comment}
           modalTitle="Review an Album"
           setComment={setComment}
+          isSearchPage={true}
+          handleSubmit={handleSubmit}
         />
       )}
     </div>
