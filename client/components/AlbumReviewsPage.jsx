@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './AlbumReviewsPage.css';
+import ReviewModal from './Modal';
 
 function AlbumReviews() {
   const [reviews, setReviews] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedReview, setSelectedReview] = useState(null);
+  const [rating, setRating] = useState('');
+  const [comment, setComment] = useState('');
 
   useEffect(() => {
     fetch('http://localhost:8080/reviews')
@@ -19,6 +24,43 @@ function AlbumReviews() {
         console.error('Error:', error);
       });
   }, []);
+
+  const openEditModal = (review) => {
+    console.log('Selected Review:', review);
+    setSelectedReview(review);
+    setShowModal(true);
+    setRating(review.rating);
+    setComment(review.comment);
+  };
+
+  const handleEditSubmit = async (reviewData) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/reviews/${selectedReview.reviewId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(reviewData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to update review');
+      }
+
+      setReviews((prevReviews) =>
+        prevReviews.map((review) =>
+          review.reviewId === selectedReview.reviewId
+            ? { ...review, ...reviewData }
+            : review
+        )
+      );
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   return (
     <div className="review-container" style={{ marginTop: '10vh' }}>
@@ -38,6 +80,10 @@ function AlbumReviews() {
                   alt={`Cover for ${review.albumName}`}
                 />
                 <div className="review-details">
+                  <i
+                    className="fas fa-edit float-right"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => openEditModal(review)}></i>
                   <p className="text-left">
                     <strong>Artist:</strong> {review.artist}
                   </p>
@@ -56,6 +102,19 @@ function AlbumReviews() {
           </div>
         </div>
       </div>
+      {showModal && (
+        <ReviewModal
+          selectedReview={selectedReview}
+          handleCloseModal={() => setShowModal(false)}
+          rating={rating}
+          setRating={setRating}
+          comment={comment}
+          modalTitle="Edit Review"
+          setComment={setComment}
+          isEditMode={true}
+          handleSubmit={handleEditSubmit}
+        />
+      )}
     </div>
   );
 }

@@ -207,6 +207,38 @@ app.post('/reviews', async (req, res) => {
   }
 });
 
+app.patch('/reviews/:reviewId', async (req, res) => {
+  try {
+    const reviewId = req.params.reviewId;
+    const { rating, comment } = req.body;
+
+    if (!rating || !comment) {
+      throw new ClientError(400, 'Rating and comment are required fields');
+    }
+
+    const sql = `
+      UPDATE "albumReviews"
+      SET "rating" = $1, "comment" = $2
+      WHERE "reviewId" = $3
+      RETURNING *`;
+
+    const params = [rating, comment, reviewId];
+    const result = await db.query(sql, params);
+    const updatedReview = result.rows[0];
+
+    if (updatedReview) {
+      res.status(200).json(updatedReview);
+    } else {
+      res
+        .status(404)
+        .json({ error: `Cannot find review with "reviewId" ${reviewId}` });
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'An unexpected error occurred.' });
+  }
+});
+
 app.get('*', (req, res) => res.sendFile(`${reactStaticDir}/index.html`));
 
 app.use(errorMiddleware);
