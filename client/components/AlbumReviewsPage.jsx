@@ -49,8 +49,14 @@ function AlbumReviews() {
       if (!response.ok) {
         throw new Error('Failed to update review');
       }
-      const data = await response.json();
-      console.log('updated review:', data);
+
+      setReviews((prevReviews) =>
+        prevReviews.map((review) =>
+          review.reviewId === selectedReview.reviewId
+            ? { ...review, ...reviewData }
+            : review
+        )
+      );
     } catch (error) {
       console.error('Error:', error);
     }

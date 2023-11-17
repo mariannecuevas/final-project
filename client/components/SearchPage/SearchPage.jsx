@@ -59,8 +59,8 @@ function SearchPage({ accessToken }) {
       if (!response.ok) {
         throw new Error('Failed to submit review');
       }
-      const data = await response.json();
-      console.log('Submitted review data:', data);
+
+      await response.json();
     } catch (error) {
       console.error('Error:', error);
     }
