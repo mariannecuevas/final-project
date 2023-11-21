@@ -81,6 +81,12 @@ function AlbumReviews() {
                 />
                 <div className="review-details">
                   <i
+                    class="fa fa-trash float-right"
+                    style={{
+                      cursor: 'pointer',
+                      marginLeft: '1rem',
+                    }}></i>
+                  <i
                     className="fas fa-edit float-right"
                     style={{ cursor: 'pointer' }}
                     onClick={() => openEditModal(review)}></i>
