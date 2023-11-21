@@ -212,6 +212,10 @@ app.patch('/reviews/:reviewId', async (req, res) => {
     const reviewId = req.params.reviewId;
     const { rating, comment } = req.body;
 
+    if (!Number.isInteger(Number(reviewId)) || reviewId <= 0) {
+      res.status(400).json({ error: 'Id must be a positive integer' });
+    }
+
     if (!rating || !comment) {
       throw new ClientError(400, 'Rating and comment are required fields');
     }
@@ -228,6 +232,37 @@ app.patch('/reviews/:reviewId', async (req, res) => {
 
     if (updatedReview) {
       res.status(200).json(updatedReview);
+    } else {
+      res
+        .status(404)
+        .json({ error: `Cannot find review with "reviewId" ${reviewId}` });
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'An unexpected error occurred.' });
+  }
+});
+
+app.delete('/reviews/:reviewId', async (req, res) => {
+  try {
+    const reviewId = req.params.reviewId;
+
+    if (!Number.isInteger(Number(reviewId)) || reviewId <= 0) {
+      res.status(400).json({ error: 'Id must be a positive integer' });
+    }
+
+    const sql = `
+      DELETE
+        from "albumReviews"
+        WHERE "reviewId" = $1
+        RETURNING *`;
+
+    const params = [reviewId];
+    const result = await db.query(sql, params);
+    const review = result.rows[0];
+
+    if (review) {
+      res.sendStatus(204);
     } else {
       res
         .status(404)
