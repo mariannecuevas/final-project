@@ -4,7 +4,8 @@
   border-radius: 10px;
   font-family: 'Open Sans', sans-serif;
   margin: 0 auto;
-  min-width: 650px;
+  width: 650px;
+  margin-top: 10vh;
 }
 
 h3 {
@@ -18,6 +19,6 @@ h3 {
 
 @media screen and (width <= 767px) {
   .review-container {
-    width: 80%;
+    width: 100%;
   }
 }
