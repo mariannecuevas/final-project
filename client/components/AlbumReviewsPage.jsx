@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './AlbumReviewsPage.css';
 import ReviewModal from './Modal';
+import './DeleteModal.css';
 
 function AlbumReviews() {
   const [reviews, setReviews] = useState([]);
@@ -8,6 +9,7 @@ function AlbumReviews() {
   const [selectedReview, setSelectedReview] = useState(null);
   const [rating, setRating] = useState('');
   const [comment, setComment] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     fetch('http://localhost:8080/reviews')
@@ -62,6 +64,37 @@ function AlbumReviews() {
     }
   };
 
+  const openDeleteModal = (review) => {
+    console.log('Opening delete modal');
+    setSelectedReview(review);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteSubmit = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/reviews/${selectedReview.reviewId}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to delete review');
+      }
+
+      setReviews((prevReviews) =>
+        prevReviews.filter(
+          (review) => review.reviewId !== selectedReview.reviewId
+        )
+      );
+
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   return (
     <div className="review-container" style={{ marginTop: '10vh' }}>
       <div className="row">
@@ -81,11 +114,12 @@ function AlbumReviews() {
                 />
                 <div className="review-details">
                   <i
-                    class="fa fa-trash float-right"
+                    className="fa fa-trash float-right"
                     style={{
                       cursor: 'pointer',
                       marginLeft: '1rem',
-                    }}></i>
+                    }}
+                    onClick={() => openDeleteModal(review)}></i>
                   <i
                     className="fas fa-edit float-right"
                     style={{ cursor: 'pointer' }}
@@ -120,6 +154,24 @@ function AlbumReviews() {
           isEditMode={true}
           handleSubmit={handleEditSubmit}
         />
+      )}
+      {showDeleteModal && (
+        <>
+          <div
+            className={`delete-overlay ${showDeleteModal ? 'active' : ''}`}
+          />
+          <div className="delete-modal">
+            <p>Are you sure you want to delete this review?</p>
+            <button className="delete-btn" onClick={handleDeleteSubmit}>
+              DELETE
+            </button>
+            <button
+              className="cancel-btn"
+              onClick={() => setShowDeleteModal(false)}>
+              CANCEL
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
