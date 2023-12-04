@@ -33,7 +33,7 @@ CREATE TABLE "public"."albumReviews" (
 
 CREATE TABLE "public"."bookmarks" (
 	"bookmarkId" serial NOT NULL,
-	"userId" integer NOT NULL,
+	"userId" integer,
 	"albumName" varchar(255) NOT NULL,
 	"artist" varchar(255) NOT NULL,
   "albumImg" varchar(255) NOT NULL,

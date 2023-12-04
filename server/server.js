@@ -274,6 +274,45 @@ app.delete('/reviews/:reviewId', async (req, res) => {
   }
 });
 
+app.get('/bookmarks', async (req, res) => {
+  try {
+    const sql = `
+      SELECT *
+        from "bookmarks"`;
+    const result = await db.query(sql);
+    const bookmarks = result.rows;
+    res.status(200).json(bookmarks);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Failed to fetch bookmarks' });
+  }
+});
+
+app.post('/bookmarks', async (req, res) => {
+  try {
+    const { albumName, artist, albumImg } = req.body;
+
+    if (!albumName || !artist || !albumImg) {
+      throw new ClientError(400, 'Album information is incomplete');
+    }
+
+    const sql = `
+      INSERT into "bookmarks" ("albumName", "artist", "albumImg")
+      VALUES ($1, $2, $3)
+      RETURNING *`;
+
+    const params = [albumName, artist, albumImg];
+    const result = await db.query(sql, params);
+    const bookmark = result.rows[0];
+    res.status(200).json(bookmark);
+  } catch (err) {
+    console.error('Error:', err);
+    res
+      .status(err.status || 500)
+      .json({ error: err.message || 'Failed to bookmark album' });
+  }
+});
+
 app.get('*', (req, res) => res.sendFile(`${reactStaticDir}/index.html`));
 
 app.use(errorMiddleware);
