@@ -313,6 +313,37 @@ app.post('/bookmarks', async (req, res) => {
   }
 });
 
+app.delete('/bookmarks/:bookmarkId', async (req, res) => {
+  try {
+    const bookmarkId = req.params.bookmarkId;
+
+    if (!Number.isInteger(Number(bookmarkId)) || bookmarkId <= 0) {
+      res.status(400).json({ error: 'Id must be a positive integer' });
+      return;
+    }
+
+    const sql = `
+      DELETE FROM "bookmarks"
+      WHERE "bookmarkId" = $1
+      RETURNING *`;
+
+    const params = [bookmarkId];
+    const result = await db.query(sql, params);
+    const deletedBookmark = result.rows[0];
+
+    if (deletedBookmark) {
+      res.sendStatus(204);
+    } else {
+      res.status(404).json({
+        error: `Cannot find bookmark with "bookmarkId" ${bookmarkId}`,
+      });
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'An unexpected error occurred.' });
+  }
+});
+
 app.get('*', (req, res) => res.sendFile(`${reactStaticDir}/index.html`));
 
 app.use(errorMiddleware);

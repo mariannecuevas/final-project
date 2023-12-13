@@ -1,8 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 function AlbumList({ albums, onAlbumSelect }) {
+  const [bookmarkedAlbums, setBookmarkedAlbums] = useState([]);
+
   const handleSelectedAlbum = (album) => {
     onAlbumSelect(album);
+  };
+
+  const toggleBookmark = async (album, event) => {
+    event.stopPropagation();
+
+    const isBookmarked = bookmarkedAlbums.includes(album);
+
+    if (isBookmarked) {
+      setBookmarkedAlbums(bookmarkedAlbums.filter((a) => a !== album));
+
+      await fetch(`http://localhost:8080/bookmarks/${album.bookmarkId}`, {
+        method: 'DELETE',
+      });
+    } else {
+      setBookmarkedAlbums([...bookmarkedAlbums, album]);
+
+      await fetch('http://localhost:8080/bookmarks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          albumName: album.name,
+          artist: album.artists[0].name,
+          albumImg: album.images[0].url,
+        }),
+      });
+    }
   };
 
   return (
@@ -32,6 +62,19 @@ function AlbumList({ albums, onAlbumSelect }) {
                     {album.name}
                   </h5>
                   <p className="card-text text-left">{album.artists[0].name}</p>
+                  <i
+                    className={`fa-regular fa-bookmark ${
+                      bookmarkedAlbums.includes(album) ? 'fas fa-solid' : ''
+                    }`}
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      bottom: '0',
+                      right: '0',
+                      margin: '8px',
+                      fontSize: '1.5rem',
+                    }}
+                    onClick={(event) => toggleBookmark(album, event)}></i>
                 </div>
               </div>
             </div>
