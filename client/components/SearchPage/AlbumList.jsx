@@ -1,7 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function AlbumList({ albums, onAlbumSelect }) {
   const [bookmarkedAlbums, setBookmarkedAlbums] = useState([]);
+
+  useEffect(() => {
+    const fetchBookmarkedAlbums = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/bookmarks');
+        const data = await response.json();
+        setBookmarkedAlbums(data);
+      } catch (error) {
+        console.error('Error fetching bookmarked albums:', error);
+      }
+    };
+
+    fetchBookmarkedAlbums();
+  }, []);
 
   const handleSelectedAlbum = (album) => {
     onAlbumSelect(album);
@@ -10,17 +24,31 @@ function AlbumList({ albums, onAlbumSelect }) {
   const toggleBookmark = async (album, event) => {
     event.stopPropagation();
 
-    const isBookmarked = bookmarkedAlbums.includes(album);
+    const isBookmarked = bookmarkedAlbums.some(
+      (a) => a.albumName === album.name
+    );
 
     if (isBookmarked) {
-      setBookmarkedAlbums(bookmarkedAlbums.filter((a) => a !== album));
+      const albumsWithSameName = bookmarkedAlbums.filter(
+        (a) => a.albumName === album.name
+      );
 
-      await fetch(`http://localhost:8080/bookmarks/${album.bookmarkId}`, {
-        method: 'DELETE',
-      });
+      await Promise.all(
+        albumsWithSameName.map(async (bookmarkedAlbum) => {
+          await fetch(
+            `http://localhost:8080/bookmarks/${bookmarkedAlbum.bookmarkId}`,
+            {
+              method: 'DELETE',
+            }
+          );
+        })
+      );
+
+      const updatedAlbums = bookmarkedAlbums.filter(
+        (a) => a.albumName !== album.name
+      );
+      setBookmarkedAlbums(updatedAlbums);
     } else {
-      setBookmarkedAlbums([...bookmarkedAlbums, album]);
-
       await fetch('http://localhost:8080/bookmarks', {
         method: 'POST',
         headers: {
@@ -32,6 +60,18 @@ function AlbumList({ albums, onAlbumSelect }) {
           albumImg: album.images[0].url,
         }),
       });
+
+      const fetchBookmarkedAlbums = async () => {
+        try {
+          const response = await fetch('http://localhost:8080/bookmarks');
+          const data = await response.json();
+          setBookmarkedAlbums(data);
+        } catch (error) {
+          console.error('Error fetching bookmarked albums:', error);
+        }
+      };
+
+      fetchBookmarkedAlbums();
     }
   };
 
@@ -64,7 +104,9 @@ function AlbumList({ albums, onAlbumSelect }) {
                   <p className="card-text text-left">{album.artists[0].name}</p>
                   <i
                     className={`fa-regular fa-bookmark ${
-                      bookmarkedAlbums.includes(album) ? 'fas fa-solid' : ''
+                      bookmarkedAlbums.some((a) => a.albumName === album.name)
+                        ? 'fas fa-solid'
+                        : ''
                     }`}
                     aria-hidden="true"
                     style={{
@@ -84,4 +126,5 @@ function AlbumList({ albums, onAlbumSelect }) {
     </div>
   );
 }
+
 export default AlbumList;
