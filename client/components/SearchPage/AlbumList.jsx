@@ -1,6 +1,70 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 function AlbumList({ albums, onAlbumSelect }) {
+  const [bookmarkedAlbums, setBookmarkedAlbums] = useState([]);
+
+  const fetchBookmarks = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/bookmarks');
+      const data = await response.json();
+      setBookmarkedAlbums(data);
+    } catch (error) {
+      console.error('Error fetching bookmarked albums:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookmarks();
+  }, []);
+
+  const toggleBookmark = async (album, event) => {
+    event.stopPropagation();
+
+    try {
+      const isBookmarked = bookmarkedAlbums.some(
+        (a) => a.albumName === album.name
+      );
+
+      if (isBookmarked) {
+        const albumsWithSameName = bookmarkedAlbums.filter(
+          (a) => a.albumName === album.name
+        );
+
+        await Promise.all(
+          albumsWithSameName.map(async (bookmarkedAlbum) => {
+            await fetch(
+              `http://localhost:8080/bookmarks/${bookmarkedAlbum.bookmarkId}`,
+              {
+                method: 'DELETE',
+              }
+            );
+          })
+        );
+
+        const updatedAlbums = bookmarkedAlbums.filter(
+          (a) => a.albumName !== album.name
+        );
+        setBookmarkedAlbums(updatedAlbums);
+      } else {
+        await fetch('http://localhost:8080/bookmarks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            albumName: album.name,
+            artist: album.artists[0].name,
+            albumImg: album.images[0].url,
+          }),
+        });
+
+        fetchBookmarks();
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+    }
+  };
+
   const handleSelectedAlbum = (album) => {
     onAlbumSelect(album);
   };
@@ -32,6 +96,21 @@ function AlbumList({ albums, onAlbumSelect }) {
                     {album.name}
                   </h5>
                   <p className="card-text text-left">{album.artists[0].name}</p>
+                  <i
+                    className={`fa-regular fa-bookmark ${
+                      bookmarkedAlbums.some((a) => a.albumName === album.name)
+                        ? 'fas fa-solid'
+                        : ''
+                    }`}
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      bottom: '0',
+                      right: '0',
+                      margin: '8px',
+                      fontSize: '1.5rem',
+                    }}
+                    onClick={(event) => toggleBookmark(album, event)}></i>
                 </div>
               </div>
             </div>
@@ -41,4 +120,5 @@ function AlbumList({ albums, onAlbumSelect }) {
     </div>
   );
 }
+
 export default AlbumList;
