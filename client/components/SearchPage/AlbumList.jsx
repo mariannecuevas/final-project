@@ -3,76 +3,70 @@ import React, { useState, useEffect } from 'react';
 function AlbumList({ albums, onAlbumSelect }) {
   const [bookmarkedAlbums, setBookmarkedAlbums] = useState([]);
 
-  useEffect(() => {
-    const fetchBookmarkedAlbums = async () => {
-      try {
-        const response = await fetch('http://localhost:8080/bookmarks');
-        const data = await response.json();
-        setBookmarkedAlbums(data);
-      } catch (error) {
-        console.error('Error fetching bookmarked albums:', error);
-      }
-    };
-
-    fetchBookmarkedAlbums();
-  }, []);
-
-  const handleSelectedAlbum = (album) => {
-    onAlbumSelect(album);
+  const fetchBookmarks = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/bookmarks');
+      const data = await response.json();
+      setBookmarkedAlbums(data);
+    } catch (error) {
+      console.error('Error fetching bookmarked albums:', error);
+    }
   };
+
+  useEffect(() => {
+    fetchBookmarks();
+  }, []);
 
   const toggleBookmark = async (album, event) => {
     event.stopPropagation();
 
-    const isBookmarked = bookmarkedAlbums.some(
-      (a) => a.albumName === album.name
-    );
-
-    if (isBookmarked) {
-      const albumsWithSameName = bookmarkedAlbums.filter(
+    try {
+      const isBookmarked = bookmarkedAlbums.some(
         (a) => a.albumName === album.name
       );
 
-      await Promise.all(
-        albumsWithSameName.map(async (bookmarkedAlbum) => {
-          await fetch(
-            `http://localhost:8080/bookmarks/${bookmarkedAlbum.bookmarkId}`,
-            {
-              method: 'DELETE',
-            }
-          );
-        })
-      );
+      if (isBookmarked) {
+        const albumsWithSameName = bookmarkedAlbums.filter(
+          (a) => a.albumName === album.name
+        );
 
-      const updatedAlbums = bookmarkedAlbums.filter(
-        (a) => a.albumName !== album.name
-      );
-      setBookmarkedAlbums(updatedAlbums);
-    } else {
-      await fetch('http://localhost:8080/bookmarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          albumName: album.name,
-          artist: album.artists[0].name,
-          albumImg: album.images[0].url,
-        }),
-      });
+        await Promise.all(
+          albumsWithSameName.map(async (bookmarkedAlbum) => {
+            await fetch(
+              `http://localhost:8080/bookmarks/${bookmarkedAlbum.bookmarkId}`,
+              {
+                method: 'DELETE',
+              }
+            );
+          })
+        );
 
-      const fetchBookmarkedAlbums = async () => {
-        try {
-          const response = await fetch('http://localhost:8080/bookmarks');
-          const data = await response.json();
-          setBookmarkedAlbums(data);
-        } catch (error) {
-          console.error('Error fetching bookmarked albums:', error);
-        }
-      };
+        const updatedAlbums = bookmarkedAlbums.filter(
+          (a) => a.albumName !== album.name
+        );
+        setBookmarkedAlbums(updatedAlbums);
+      } else {
+        await fetch('http://localhost:8080/bookmarks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            albumName: album.name,
+            artist: album.artists[0].name,
+            albumImg: album.images[0].url,
+          }),
+        });
 
-      fetchBookmarkedAlbums();
+        fetchBookmarks();
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
     }
+  };
+
+  const handleSelectedAlbum = (album) => {
+    onAlbumSelect(album);
   };
 
   return (
