@@ -1,0 +1,20 @@
+.bookmarks-container {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  font-family: 'Open Sans', sans-serif;
+  margin: 0 auto;
+  width: 650px;
+  margin-top: 10vh;
+}
+
+h3 {
+  font-family: roboto, sans-serif;
+  margin-bottom: 25px;
+}
+
+@media screen and (width <=767px) {
+  .bookmarks-container {
+    width: 100%;
+  }
+}
