@@ -13,6 +13,7 @@ export default function App() {
   const menuItems = [
     { id: 1, title: 'Home', path: '/' },
     { id: 2, title: 'Reviews', path: '/albumreviews' },
+    { id: 3, title: 'Bookmarks', path: '/bookmarks' },
   ];
 
   const menuHeading = 'Menu';
