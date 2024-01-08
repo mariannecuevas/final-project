@@ -5,6 +5,7 @@ import '../components/AppDrawer.css';
 import AppDrawer from '../components/AppDrawer';
 import { Routes, Route } from 'react-router-dom';
 import AlbumReviews from '../components/AlbumReviewsPage';
+import BookmarksPage from '../components/BookmarksPage';
 
 export default function App() {
   const [accessToken, setAccessToken] = useState('');
@@ -13,6 +14,7 @@ export default function App() {
   const menuItems = [
     { id: 1, title: 'Home', path: '/' },
     { id: 2, title: 'Reviews', path: '/albumreviews' },
+    { id: 3, title: 'Bookmarks', path: '/bookmarks' },
   ];
 
   const menuHeading = 'Menu';
@@ -54,6 +56,7 @@ export default function App() {
               element={<SearchPage accessToken={accessToken} />}
             />
             <Route path="albumreviews" element={<AlbumReviews />} />
+            <Route path="bookmarks" element={<BookmarksPage />} />
           </Routes>
         </div>
       </div>
