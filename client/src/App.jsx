@@ -6,6 +6,7 @@ import AppDrawer from '../components/AppDrawer';
 import { Routes, Route } from 'react-router-dom';
 import AlbumReviews from '../components/AlbumReviewsPage';
 import BookmarksPage from '../components/BookmarksPage';
+import SignIn from '../components/Register';
 
 export default function App() {
   const [accessToken, setAccessToken] = useState('');
@@ -15,6 +16,7 @@ export default function App() {
     { id: 1, title: 'Home', path: '/' },
     { id: 2, title: 'Reviews', path: '/albumreviews' },
     { id: 3, title: 'Bookmarks', path: '/bookmarks' },
+    { id: 4, title: 'Testing', path: '/test' },
   ];
 
   const menuHeading = 'Menu';
@@ -57,6 +59,7 @@ export default function App() {
             />
             <Route path="albumreviews" element={<AlbumReviews />} />
             <Route path="bookmarks" element={<BookmarksPage />} />
+            <Route path="test" element={<SignIn />} />
           </Routes>
         </div>
       </div>
