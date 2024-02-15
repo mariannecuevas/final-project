@@ -11,12 +11,29 @@ function SignIn() {
     setPassword('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Username:', username);
-    console.log('Password:', password);
-    setUsername('');
-    setPassword('');
+
+    try {
+      const response = await fetch('/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to register user');
+      }
+
+      console.log('User registered successfully');
+
+      setUsername('');
+      setPassword('');
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   return (
