@@ -15,7 +15,13 @@ function SignIn() {
     e.preventDefault();
 
     try {
-      const response = await fetch('/register', {
+      if (isSignInMode) {
+        setUsername('');
+        setPassword('');
+        return;
+      }
+
+      const response = await fetch('http://localhost:8080/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -26,8 +32,6 @@ function SignIn() {
       if (!response.ok) {
         throw new Error('Failed to register user');
       }
-
-      console.log('User registered successfully');
 
       setUsername('');
       setPassword('');
