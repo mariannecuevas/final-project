@@ -5,6 +5,7 @@ import pg from 'pg';
 import { ClientError, errorMiddleware } from './lib/index.js';
 import cors from 'cors';
 import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
 
 const connectionString =
   process.env.DATABASE_URL ||
@@ -358,18 +359,62 @@ app.post('/register', async (req, res) => {
     const sql = `
       INSERT INTO "users" ("username", "hashedPassword")
       VALUES ($1, $2)
-      RETURNING "userId", "username", "createdAt", "updatedAt"`;
+      RETURNING *`;
 
     const params = [username, hashedPassword];
     const result = await db.query(sql, params);
     const user = result.rows[0];
 
-    res.status(200).json(user);
+    res.status(201).json(user);
   } catch (err) {
     console.error('Error:', err);
     res
       .status(err.status || 500)
       .json({ error: err.message || 'Failed to register user' });
+  }
+});
+
+app.post('/sign-in', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      throw new ClientError(401, 'invalid login');
+    }
+
+    const hashedPassword = await argon2.hash(password);
+
+    const sql = `
+      SELECT "userId", "hashedPassword"
+        from "users"
+        where "username" = $1
+      `;
+
+    const param = [username];
+    const result = await db.query(sql, param);
+    const user = result.rows[0];
+
+    if (!user) {
+      throw new ClientError(401, 'invalid login');
+    }
+
+    const isMatching = await argon2.verify(user.hashedPassword, password);
+    if (!isMatching) {
+      throw new ClientError(401, 'invalid login');
+    }
+
+    const payload = {
+      userId: user.userId,
+      username,
+    };
+
+    const token = jwt.sign(payload, process.env.TOKEN_SECRET);
+
+    res.status(200).json({ payload, token });
+  } catch (err) {
+    console.error('Error:', err);
+    res
+      .status(err.status || 500)
+      .json({ error: err.message || 'Failed to sign in' });
   }
 });
 
