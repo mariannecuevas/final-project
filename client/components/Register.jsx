@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function SignIn() {
+function SignIn({ onSignIn }) {
   const [isSignInMode, setIsSignInMode] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -15,13 +15,8 @@ function SignIn() {
     e.preventDefault();
 
     try {
-      if (isSignInMode) {
-        setUsername('');
-        setPassword('');
-        return;
-      }
-
-      const response = await fetch('http://localhost:8080/register', {
+      const authEndpoint = isSignInMode ? 'sign-in' : 'register';
+      const response = await fetch(`http://localhost:8080/${authEndpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,11 +25,17 @@ function SignIn() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to register user');
+        throw new Error(`Failed to ${isSignInMode ? 'sign in' : 'register'}`);
       }
 
-      setUsername('');
-      setPassword('');
+      const data = await response.json();
+      const token = data.token;
+
+      localStorage.setItem('authToken', token);
+
+      onSignIn();
+
+      console.log(`${isSignInMode ? 'Signed In' : 'Registered'} successfully`);
     } catch (error) {
       console.error('Error:', error);
     }

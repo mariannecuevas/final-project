@@ -1,7 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-function AppDrawer({ menuHeading, menuItems, handleToggle, isOpen }) {
+function AppDrawer({
+  menuHeading,
+  menuItems,
+  handleToggle,
+  isOpen,
+  onSignOut,
+}) {
+  const handleSignOut = () => {
+    onSignOut();
+  };
+
   return (
     <>
       <div>
@@ -19,6 +29,9 @@ function AppDrawer({ menuHeading, menuItems, handleToggle, isOpen }) {
                   </button>
                 </Link>
               ))}
+              <button className="menu-item" onClick={handleSignOut}>
+                Sign Out
+              </button>
             </div>
           </div>
         </div>

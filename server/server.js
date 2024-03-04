@@ -2,7 +2,7 @@
 import 'dotenv/config';
 import express from 'express';
 import pg from 'pg';
-import { ClientError, errorMiddleware } from './lib/index.js';
+import { ClientError, errorMiddleware, authMiddleware } from './lib/index.js';
 import cors from 'cors';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
@@ -170,182 +170,6 @@ async function getArtistAlbums(artistId, accessToken) {
   return data.items;
 }
 
-app.get('/reviews', async (req, res) => {
-  try {
-    const sql = `
-      SELECT *
-        from "albumReviews"`;
-    const result = await db.query(sql);
-    const reviews = result.rows;
-    res.status(200).json(reviews);
-  } catch (err) {
-    console.error('Error:', err);
-    res.status(500).json({ error: 'Failed to fetch reviews' });
-  }
-});
-
-app.post('/reviews', async (req, res) => {
-  try {
-    const { albumName, artist, albumImg, rating, comment } = req.body;
-
-    if (!rating || !comment) {
-      throw new ClientError(400, 'Rating and comment are required fields');
-    }
-
-    const sql = `
-      INSERT into "albumReviews" ("albumName", "artist", "albumImg", "rating", "comment")
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *`;
-
-    const params = [albumName, artist, albumImg, rating, comment];
-    const result = await db.query(sql, params);
-    const review = result.rows[0];
-    res.status(200).json(review);
-  } catch (err) {
-    console.error('Error:', err);
-    res
-      .status(err.status || 500)
-      .json({ error: err.message || 'Failed to post review' });
-  }
-});
-
-app.patch('/reviews/:reviewId', async (req, res) => {
-  try {
-    const reviewId = req.params.reviewId;
-    const { rating, comment } = req.body;
-
-    if (!Number.isInteger(Number(reviewId)) || reviewId <= 0) {
-      res.status(400).json({ error: 'Id must be a positive integer' });
-    }
-
-    if (!rating || !comment) {
-      throw new ClientError(400, 'Rating and comment are required fields');
-    }
-
-    const sql = `
-      UPDATE "albumReviews"
-      SET "rating" = $1, "comment" = $2
-      WHERE "reviewId" = $3
-      RETURNING *`;
-
-    const params = [rating, comment, reviewId];
-    const result = await db.query(sql, params);
-    const updatedReview = result.rows[0];
-
-    if (updatedReview) {
-      res.status(200).json(updatedReview);
-    } else {
-      res
-        .status(404)
-        .json({ error: `Cannot find review with "reviewId" ${reviewId}` });
-    }
-  } catch (err) {
-    console.error('Error:', err);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
-  }
-});
-
-app.delete('/reviews/:reviewId', async (req, res) => {
-  try {
-    const reviewId = req.params.reviewId;
-
-    if (!Number.isInteger(Number(reviewId)) || reviewId <= 0) {
-      res.status(400).json({ error: 'Id must be a positive integer' });
-    }
-
-    const sql = `
-      DELETE
-        from "albumReviews"
-        WHERE "reviewId" = $1
-        RETURNING *`;
-
-    const params = [reviewId];
-    const result = await db.query(sql, params);
-    const review = result.rows[0];
-
-    if (review) {
-      res.sendStatus(204);
-    } else {
-      res
-        .status(404)
-        .json({ error: `Cannot find review with "reviewId" ${reviewId}` });
-    }
-  } catch (err) {
-    console.error('Error:', err);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
-  }
-});
-
-app.get('/bookmarks', async (req, res) => {
-  try {
-    const sql = `
-      SELECT *
-        from "bookmarks"`;
-    const result = await db.query(sql);
-    const bookmarks = result.rows;
-    res.status(200).json(bookmarks);
-  } catch (err) {
-    console.error('Error:', err);
-    res.status(500).json({ error: 'Failed to fetch bookmarks' });
-  }
-});
-
-app.post('/bookmarks', async (req, res) => {
-  try {
-    const { albumName, artist, albumImg } = req.body;
-
-    if (!albumName || !artist || !albumImg) {
-      throw new ClientError(400, 'Album information is incomplete');
-    }
-
-    const sql = `
-      INSERT into "bookmarks" ("albumName", "artist", "albumImg")
-      VALUES ($1, $2, $3)
-      RETURNING *`;
-
-    const params = [albumName, artist, albumImg];
-    const result = await db.query(sql, params);
-    const bookmark = result.rows[0];
-    res.status(200).json(bookmark);
-  } catch (err) {
-    console.error('Error:', err);
-    res
-      .status(err.status || 500)
-      .json({ error: err.message || 'Failed to bookmark album' });
-  }
-});
-
-app.delete('/bookmarks/:bookmarkId', async (req, res) => {
-  try {
-    const bookmarkId = req.params.bookmarkId;
-
-    if (!Number.isInteger(Number(bookmarkId)) || bookmarkId <= 0) {
-      res.status(400).json({ error: 'Id must be a positive integer' });
-      return;
-    }
-
-    const sql = `
-      DELETE FROM "bookmarks"
-      WHERE "bookmarkId" = $1
-      RETURNING *`;
-
-    const params = [bookmarkId];
-    const result = await db.query(sql, params);
-    const deletedBookmark = result.rows[0];
-
-    if (deletedBookmark) {
-      res.sendStatus(204);
-    } else {
-      res.status(404).json({
-        error: `Cannot find bookmark with "bookmarkId" ${bookmarkId}`,
-      });
-    }
-  } catch (err) {
-    console.error('Error:', err);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
-  }
-});
-
 app.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -381,8 +205,6 @@ app.post('/sign-in', async (req, res) => {
       throw new ClientError(401, 'invalid login');
     }
 
-    const hashedPassword = await argon2.hash(password);
-
     const sql = `
       SELECT "userId", "hashedPassword"
         from "users"
@@ -398,6 +220,7 @@ app.post('/sign-in', async (req, res) => {
     }
 
     const isMatching = await argon2.verify(user.hashedPassword, password);
+    console.log(isMatching);
     if (!isMatching) {
       throw new ClientError(401, 'invalid login');
     }
@@ -409,12 +232,226 @@ app.post('/sign-in', async (req, res) => {
 
     const token = jwt.sign(payload, process.env.TOKEN_SECRET);
 
-    res.status(200).json({ payload, token });
+    res.status(200).json({ user, token });
   } catch (err) {
     console.error('Error:', err);
     res
       .status(err.status || 500)
       .json({ error: err.message || 'Failed to sign in' });
+  }
+});
+
+app.get('/reviews', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+
+    const sql = `
+      SELECT *
+        from "albumReviews"
+        where "userId" = $1
+        order by "reviewId" desc
+    `;
+    const result = await db.query(sql, [req.user.userId]);
+    const reviews = result.rows;
+    res.status(201).json(reviews);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+app.post('/reviews', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const { albumName, artist, albumImg, rating, comment } = req.body;
+
+    if (!rating || !comment) {
+      throw new ClientError(400, 'Rating and comment are required fields');
+    }
+
+    const sql = `
+      INSERT into "albumReviews" ("userId", "albumName", "artist", "albumImg", "rating", "comment")
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *;
+    `;
+
+    const params = [
+      req.user.userId,
+      albumName,
+      artist,
+      albumImg,
+      rating,
+      comment,
+    ];
+    const result = await db.query(sql, params);
+    const [review] = result.rows;
+    res.status(201).json(review);
+  } catch (err) {
+    console.error('Error:', err);
+    res
+      .status(err.status || 500)
+      .json({ error: err.message || 'Failed to post review' });
+  }
+});
+
+app.patch('/reviews/:reviewId', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const reviewId = req.params.reviewId;
+    const { rating, comment } = req.body;
+
+    if (!Number.isInteger(Number(reviewId)) || reviewId <= 0) {
+      res.status(400).json({ error: 'Id must be a positive integer' });
+    }
+
+    if (!rating || !comment) {
+      throw new ClientError(400, 'Rating and comment are required fields');
+    }
+
+    const sql = `
+      UPDATE "albumReviews"
+      SET "rating" = $1, "comment" = $2
+      WHERE "reviewId" = $3 and "userId"" = $4
+      RETURNING *;
+    `;
+
+    const params = [rating, comment, reviewId, req.user.userId];
+    const result = await db.query(sql, params);
+    const [updatedReview] = result.rows;
+
+    if (updatedReview) {
+      res.status(201).json(updatedReview);
+    } else {
+      res
+        .status(404)
+        .json({ error: `Cannot find review with "reviewId" ${reviewId}` });
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'An unexpected error occurred.' });
+  }
+});
+
+app.delete('/reviews/:reviewId', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const reviewId = req.params.reviewId;
+
+    if (!Number.isInteger(Number(reviewId)) || reviewId <= 0) {
+      res.status(400).json({ error: 'Id must be a positive integer' });
+    }
+
+    const sql = `
+      DELETE
+        from "albumReviews"
+        WHERE "reviewId" = $1 and "userId" = $2
+        RETURNING *`;
+
+    const params = [reviewId, req.user.userId];
+    const result = await db.query(sql, params);
+    const [review] = result.rows;
+
+    if (review) {
+      res.sendStatus(204);
+    } else {
+      res
+        .status(404)
+        .json({ error: `Cannot find review with "reviewId" ${reviewId}` });
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'An unexpected error occurred.' });
+  }
+});
+
+app.get('/bookmarks', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+
+    const sql = `
+      SELECT *
+        from "bookmarks"
+        where "userId" = $1
+        order by "entryId" desc;
+    `;
+    const result = await db.query(sql, [req.user.userId]);
+    const bookmarks = result.rows;
+    res.status(200).json(bookmarks);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Failed to fetch bookmarks' });
+  }
+});
+
+app.post('/bookmarks', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const { albumName, artist, albumImg } = req.body;
+
+    if (!albumName || !artist || !albumImg) {
+      throw new ClientError(400, 'Album information is incomplete');
+    }
+
+    const sql = `
+      INSERT into "bookmarks" ("userId", "albumName", "artist", "albumImg")
+      VALUES ($1, $2, $3, $4)
+      RETURNING *`;
+
+    const params = [req.user.userId, albumName, artist, albumImg];
+    const result = await db.query(sql, params);
+    const [bookmark] = result.rows;
+    res.status(201).json(bookmark);
+  } catch (err) {
+    console.error('Error:', err);
+    res
+      .status(err.status || 500)
+      .json({ error: err.message || 'Failed to bookmark album' });
+  }
+});
+
+app.delete('/bookmarks/:bookmarkId', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    const bookmarkId = req.params.bookmarkId;
+
+    if (!Number.isInteger(Number(bookmarkId)) || bookmarkId <= 0) {
+      res.status(400).json({ error: 'Id must be a positive integer' });
+      return;
+    }
+
+    const sql = `
+      DELETE FROM "bookmarks"
+      WHERE "bookmarkId" = $1 and "userId" = $2
+      RETURNING *`;
+
+    const params = [bookmarkId, req.user.userId];
+    const result = await db.query(sql, params);
+    const [deletedBookmark] = result.rows;
+
+    if (deletedBookmark) {
+      res.sendStatus(204);
+    } else {
+      res.status(404).json({
+        error: `Cannot find bookmark with "bookmarkId" ${bookmarkId}`,
+      });
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'An unexpected error occurred.' });
   }
 });
 
