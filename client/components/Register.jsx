@@ -28,13 +28,11 @@ function SignIn({ onSignIn }) {
         throw new Error(`Failed to ${isSignInMode ? 'sign in' : 'register'}`);
       }
 
-      const data = await response.json();
-      const token = data.token;
+      const { user, token } = await response.json();
 
       localStorage.setItem('authToken', token);
-
+      console.log('Signed In', user, '; received token:', token);
       onSignIn();
-
       console.log(`${isSignInMode ? 'Signed In' : 'Registered'} successfully`);
     } catch (error) {
       console.error('Error:', error);

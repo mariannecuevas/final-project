@@ -5,7 +5,16 @@ function AlbumList({ albums, onAlbumSelect }) {
 
   const fetchBookmarks = async () => {
     try {
-      const response = await fetch('http://localhost:8080/bookmarks');
+      const response = await fetch('http://localhost:8080/bookmarks', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch bookmarks');
+      }
+
       const data = await response.json();
       setBookmarkedAlbums(data);
     } catch (error) {
@@ -36,6 +45,9 @@ function AlbumList({ albums, onAlbumSelect }) {
               `http://localhost:8080/bookmarks/${bookmarkedAlbum.bookmarkId}`,
               {
                 method: 'DELETE',
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
               }
             );
           })
@@ -50,6 +62,7 @@ function AlbumList({ albums, onAlbumSelect }) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
           body: JSON.stringify({
             albumName: album.name,

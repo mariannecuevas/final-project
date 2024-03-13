@@ -17,8 +17,6 @@ export default function App() {
     { id: 1, title: 'Home', path: '/' },
     { id: 2, title: 'Reviews', path: '/albumreviews' },
     { id: 3, title: 'Bookmarks', path: '/bookmarks' },
-    { id: 4, title: 'Testing', path: '/test' },
-    { id: 5, title: 'Sign Out', path: '/sign-out' },
   ];
 
   const menuHeading = 'Menu';
