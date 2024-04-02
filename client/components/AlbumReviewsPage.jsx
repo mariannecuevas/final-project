@@ -16,7 +16,7 @@ function AlbumReviews() {
       try {
         const response = await fetch('http://localhost:8080/reviews', {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`, // Retrieve token here
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },
         });
 
@@ -50,7 +50,7 @@ function AlbumReviews() {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },
           body: JSON.stringify(reviewData),
         }
@@ -85,7 +85,7 @@ function AlbumReviews() {
         {
           method: 'DELETE',
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },
         }
       );

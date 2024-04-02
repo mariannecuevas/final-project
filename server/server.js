@@ -300,9 +300,11 @@ app.post('/reviews', authMiddleware, async (req, res) => {
 
 app.patch('/reviews/:reviewId', authMiddleware, async (req, res) => {
   try {
+    console.log('first', req.user);
     if (!req.user) {
       throw new ClientError(401, 'not logged in');
     }
+    console.log('second', req.user);
     const reviewId = req.params.reviewId;
     const { rating, comment } = req.body;
 
@@ -317,7 +319,7 @@ app.patch('/reviews/:reviewId', authMiddleware, async (req, res) => {
     const sql = `
       UPDATE "albumReviews"
       SET "rating" = $1, "comment" = $2
-      WHERE "reviewId" = $3 and "userId"" = $4
+      WHERE "reviewId" = $3 and "userId" = $4
       RETURNING *;
     `;
 
@@ -374,15 +376,16 @@ app.delete('/reviews/:reviewId', authMiddleware, async (req, res) => {
 
 app.get('/bookmarks', authMiddleware, async (req, res) => {
   try {
+    console.log('first', req.user);
     if (!req.user) {
       throw new ClientError(401, 'not logged in');
     }
-
+    console.log('after req', req.user);
     const sql = `
       SELECT *
         from "bookmarks"
         where "userId" = $1
-        order by "entryId" desc;
+        order by "bookmarkId" desc;
     `;
     const result = await db.query(sql, [req.user.userId]);
     const bookmarks = result.rows;

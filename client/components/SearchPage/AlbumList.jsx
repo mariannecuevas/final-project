@@ -7,7 +7,8 @@ function AlbumList({ albums, onAlbumSelect }) {
     try {
       const response = await fetch('http://localhost:8080/bookmarks', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
       });
 
@@ -46,7 +47,7 @@ function AlbumList({ albums, onAlbumSelect }) {
               {
                 method: 'DELETE',
                 headers: {
-                  Authorization: `Bearer ${localStorage.getItem('token')}`,
+                  Authorization: `Bearer ${localStorage.getItem('authToken')}`,
                 },
               }
             );
@@ -62,7 +63,7 @@ function AlbumList({ albums, onAlbumSelect }) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },
           body: JSON.stringify({
             albumName: album.name,
