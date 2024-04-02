@@ -8,7 +8,16 @@ function BookmarksPage() {
 
   const fetchBookmarks = async () => {
     try {
-      const response = await fetch('http://localhost:8080/bookmarks');
+      const response = await fetch('http://localhost:8080/bookmarks', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch bookmarked albums');
+      }
+
       const data = await response.json();
       setBookmarkedAlbums(data);
     } catch (error) {
@@ -34,6 +43,7 @@ function BookmarksPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },
           body: JSON.stringify({
             albumName: album.albumName,
@@ -56,6 +66,9 @@ function BookmarksPage() {
           `http://localhost:8080/bookmarks/${selectedBookmark.bookmarkId}`,
           {
             method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+            },
           }
         );
 

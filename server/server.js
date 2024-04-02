@@ -2,9 +2,10 @@
 import 'dotenv/config';
 import express from 'express';
 import pg from 'pg';
-import { ClientError, errorMiddleware } from './lib/index.js';
+import { ClientError, errorMiddleware, authMiddleware } from './lib/index.js';
 import cors from 'cors';
 import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
 
 const connectionString =
   process.env.DATABASE_URL ||
@@ -169,22 +170,103 @@ async function getArtistAlbums(artistId, accessToken) {
   return data.items;
 }
 
-app.get('/reviews', async (req, res) => {
+app.post('/register', async (req, res) => {
   try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      throw new ClientError(400, 'Username and password are required fields');
+    }
+
+    const hashedPassword = await argon2.hash(password);
+
+    const sql = `
+      INSERT INTO "users" ("username", "hashedPassword")
+      VALUES ($1, $2)
+      RETURNING *`;
+
+    const params = [username, hashedPassword];
+    const result = await db.query(sql, params);
+    const user = result.rows[0];
+
+    res.status(201).json(user);
+  } catch (err) {
+    console.error('Error:', err);
+    res
+      .status(err.status || 500)
+      .json({ error: err.message || 'Failed to register user' });
+  }
+});
+
+app.post('/sign-in', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      throw new ClientError(401, 'invalid login');
+    }
+
+    const sql = `
+      SELECT "userId", "hashedPassword"
+        from "users"
+        where "username" = $1
+      `;
+
+    const param = [username];
+    const result = await db.query(sql, param);
+    const user = result.rows[0];
+
+    if (!user) {
+      throw new ClientError(401, 'invalid login');
+    }
+
+    const isMatching = await argon2.verify(user.hashedPassword, password);
+    console.log(isMatching);
+    if (!isMatching) {
+      throw new ClientError(401, 'invalid login');
+    }
+
+    const payload = {
+      userId: user.userId,
+      username,
+    };
+
+    const token = jwt.sign(payload, process.env.TOKEN_SECRET);
+
+    res.status(200).json({ user, token });
+  } catch (err) {
+    console.error('Error:', err);
+    res
+      .status(err.status || 500)
+      .json({ error: err.message || 'Failed to sign in' });
+  }
+});
+
+app.get('/reviews', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+
     const sql = `
       SELECT *
-        from "albumReviews"`;
-    const result = await db.query(sql);
+        from "albumReviews"
+        where "userId" = $1
+        order by "reviewId" desc
+    `;
+    const result = await db.query(sql, [req.user.userId]);
     const reviews = result.rows;
-    res.status(200).json(reviews);
+    res.status(201).json(reviews);
   } catch (err) {
     console.error('Error:', err);
     res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 });
 
-app.post('/reviews', async (req, res) => {
+app.post('/reviews', authMiddleware, async (req, res) => {
   try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
     const { albumName, artist, albumImg, rating, comment } = req.body;
 
     if (!rating || !comment) {
@@ -192,14 +274,22 @@ app.post('/reviews', async (req, res) => {
     }
 
     const sql = `
-      INSERT into "albumReviews" ("albumName", "artist", "albumImg", "rating", "comment")
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *`;
+      INSERT into "albumReviews" ("userId", "albumName", "artist", "albumImg", "rating", "comment")
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *;
+    `;
 
-    const params = [albumName, artist, albumImg, rating, comment];
+    const params = [
+      req.user.userId,
+      albumName,
+      artist,
+      albumImg,
+      rating,
+      comment,
+    ];
     const result = await db.query(sql, params);
-    const review = result.rows[0];
-    res.status(200).json(review);
+    const [review] = result.rows;
+    res.status(201).json(review);
   } catch (err) {
     console.error('Error:', err);
     res
@@ -208,8 +298,13 @@ app.post('/reviews', async (req, res) => {
   }
 });
 
-app.patch('/reviews/:reviewId', async (req, res) => {
+app.patch('/reviews/:reviewId', authMiddleware, async (req, res) => {
   try {
+    console.log('first', req.user);
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    console.log('second', req.user);
     const reviewId = req.params.reviewId;
     const { rating, comment } = req.body;
 
@@ -224,15 +319,16 @@ app.patch('/reviews/:reviewId', async (req, res) => {
     const sql = `
       UPDATE "albumReviews"
       SET "rating" = $1, "comment" = $2
-      WHERE "reviewId" = $3
-      RETURNING *`;
+      WHERE "reviewId" = $3 and "userId" = $4
+      RETURNING *;
+    `;
 
-    const params = [rating, comment, reviewId];
+    const params = [rating, comment, reviewId, req.user.userId];
     const result = await db.query(sql, params);
-    const updatedReview = result.rows[0];
+    const [updatedReview] = result.rows;
 
     if (updatedReview) {
-      res.status(200).json(updatedReview);
+      res.status(201).json(updatedReview);
     } else {
       res
         .status(404)
@@ -244,8 +340,11 @@ app.patch('/reviews/:reviewId', async (req, res) => {
   }
 });
 
-app.delete('/reviews/:reviewId', async (req, res) => {
+app.delete('/reviews/:reviewId', authMiddleware, async (req, res) => {
   try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
     const reviewId = req.params.reviewId;
 
     if (!Number.isInteger(Number(reviewId)) || reviewId <= 0) {
@@ -255,12 +354,12 @@ app.delete('/reviews/:reviewId', async (req, res) => {
     const sql = `
       DELETE
         from "albumReviews"
-        WHERE "reviewId" = $1
+        WHERE "reviewId" = $1 and "userId" = $2
         RETURNING *`;
 
-    const params = [reviewId];
+    const params = [reviewId, req.user.userId];
     const result = await db.query(sql, params);
-    const review = result.rows[0];
+    const [review] = result.rows;
 
     if (review) {
       res.sendStatus(204);
@@ -275,12 +374,20 @@ app.delete('/reviews/:reviewId', async (req, res) => {
   }
 });
 
-app.get('/bookmarks', async (req, res) => {
+app.get('/bookmarks', authMiddleware, async (req, res) => {
   try {
+    console.log('first', req.user);
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
+    console.log('after req', req.user);
     const sql = `
       SELECT *
-        from "bookmarks"`;
-    const result = await db.query(sql);
+        from "bookmarks"
+        where "userId" = $1
+        order by "bookmarkId" desc;
+    `;
+    const result = await db.query(sql, [req.user.userId]);
     const bookmarks = result.rows;
     res.status(200).json(bookmarks);
   } catch (err) {
@@ -289,8 +396,11 @@ app.get('/bookmarks', async (req, res) => {
   }
 });
 
-app.post('/bookmarks', async (req, res) => {
+app.post('/bookmarks', authMiddleware, async (req, res) => {
   try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
     const { albumName, artist, albumImg } = req.body;
 
     if (!albumName || !artist || !albumImg) {
@@ -298,14 +408,14 @@ app.post('/bookmarks', async (req, res) => {
     }
 
     const sql = `
-      INSERT into "bookmarks" ("albumName", "artist", "albumImg")
-      VALUES ($1, $2, $3)
+      INSERT into "bookmarks" ("userId", "albumName", "artist", "albumImg")
+      VALUES ($1, $2, $3, $4)
       RETURNING *`;
 
-    const params = [albumName, artist, albumImg];
+    const params = [req.user.userId, albumName, artist, albumImg];
     const result = await db.query(sql, params);
-    const bookmark = result.rows[0];
-    res.status(200).json(bookmark);
+    const [bookmark] = result.rows;
+    res.status(201).json(bookmark);
   } catch (err) {
     console.error('Error:', err);
     res
@@ -314,8 +424,11 @@ app.post('/bookmarks', async (req, res) => {
   }
 });
 
-app.delete('/bookmarks/:bookmarkId', async (req, res) => {
+app.delete('/bookmarks/:bookmarkId', authMiddleware, async (req, res) => {
   try {
+    if (!req.user) {
+      throw new ClientError(401, 'not logged in');
+    }
     const bookmarkId = req.params.bookmarkId;
 
     if (!Number.isInteger(Number(bookmarkId)) || bookmarkId <= 0) {
@@ -325,12 +438,12 @@ app.delete('/bookmarks/:bookmarkId', async (req, res) => {
 
     const sql = `
       DELETE FROM "bookmarks"
-      WHERE "bookmarkId" = $1
+      WHERE "bookmarkId" = $1 and "userId" = $2
       RETURNING *`;
 
-    const params = [bookmarkId];
+    const params = [bookmarkId, req.user.userId];
     const result = await db.query(sql, params);
-    const deletedBookmark = result.rows[0];
+    const [deletedBookmark] = result.rows;
 
     if (deletedBookmark) {
       res.sendStatus(204);
@@ -342,34 +455,6 @@ app.delete('/bookmarks/:bookmarkId', async (req, res) => {
   } catch (err) {
     console.error('Error:', err);
     res.status(500).json({ error: 'An unexpected error occurred.' });
-  }
-});
-
-app.post('/register', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      throw new ClientError(400, 'Username and password are required fields');
-    }
-
-    const hashedPassword = await argon2.hash(password);
-
-    const sql = `
-      INSERT INTO "users" ("username", "hashedPassword")
-      VALUES ($1, $2)
-      RETURNING "userId", "username", "createdAt", "updatedAt"`;
-
-    const params = [username, hashedPassword];
-    const result = await db.query(sql, params);
-    const user = result.rows[0];
-
-    res.status(200).json(user);
-  } catch (err) {
-    console.error('Error:', err);
-    res
-      .status(err.status || 500)
-      .json({ error: err.message || 'Failed to register user' });
   }
 });
 

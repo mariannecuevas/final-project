@@ -12,19 +12,26 @@ function AlbumReviews() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:8080/reviews')
-      .then((response) => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/reviews', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        });
+
         if (!response.ok) {
           throw new Error('Failed to fetch reviews');
         }
-        return response.json();
-      })
-      .then((data) => {
+
+        const data = await response.json();
         setReviews(data);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('Error:', error);
-      });
+      }
+    };
+
+    fetchReviews();
   }, []);
 
   const openEditModal = (review) => {
@@ -43,6 +50,7 @@ function AlbumReviews() {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },
           body: JSON.stringify(reviewData),
         }
@@ -76,6 +84,9 @@ function AlbumReviews() {
         `http://localhost:8080/reviews/${selectedReview.reviewId}`,
         {
           method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
         }
       );
 
