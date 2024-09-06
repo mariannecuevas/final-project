@@ -51,9 +51,7 @@ function SignIn({ onSignIn }) {
         <div style={{ minWidth: '300px', maxWidth: '320px', margin: '0 auto' }}>
           <div className="card">
             <div className="card-body">
-              <h2 className="mb-4">
-                {isSignInMode ? 'Sign In' : 'Getting Started'}
-              </h2>
+              <h2 className="mb-4">{isSignInMode ? 'Sign In' : 'Register'}</h2>
               <form onSubmit={handleSubmit}>
                 {isSignInMode ? (
                   <>
