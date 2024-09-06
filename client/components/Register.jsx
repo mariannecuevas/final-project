@@ -31,9 +31,15 @@ function SignIn({ onSignIn }) {
       const { user, token } = await response.json();
 
       localStorage.setItem('authToken', token);
-      console.log('Signed In', user, '; received token:', token);
-      onSignIn();
-      console.log(`${isSignInMode ? 'Signed In' : 'Registered'} successfully`);
+
+      if (isSignInMode) {
+        console.log('Signed In successfully');
+        onSignIn();
+      } else {
+        console.log('Registered', user, '; received token:', token);
+        setIsSignInMode(true);
+        setUsername(username);
+      }
     } catch (error) {
       console.error('Error:', error);
     }
