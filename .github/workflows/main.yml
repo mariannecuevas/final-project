@@ -33,8 +33,8 @@ jobs:
         with:
           aws_access_key: ${{ env.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          application_name: lfz-final-project
-          environment_name: lfz-final-project-dev
+          application_name: final-project
+          environment_name: final-project-dev
           version_label: ${{ github.sha }}
           region: ${{ env.AWS_REGION }}
           deployment_package: deploy.zip
