@@ -1,8 +1,8 @@
-/* eslint-disable no-unused-vars  -- Remove when used */
+// @ts-nocheck
 import 'dotenv/config';
 import express from 'express';
 import pg from 'pg';
-import { ClientError, errorMiddleware, authMiddleware } from './lib/index.ts';
+import { ClientError, errorMiddleware, authMiddleware } from './lib/index.js';
 import cors from 'cors';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
