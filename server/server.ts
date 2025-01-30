@@ -7,11 +7,11 @@ import cors from 'cors';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  `postgresql://${process.env.RDS_USERNAME}:${process.env.RDS_PASSWORD}@${process.env.RDS_HOSTNAME}:${process.env.RDS_PORT}/${process.env.RDS_DB_NAME}`;
-// eslint-disable-next-line no-unused-vars -- Remove when used
-const db = new pg.Pool({
+// const connectionString =
+//   process.env.DATABASE_URL ||
+//   `postgresql://${process.env.RDS_USERNAME}:${process.env.RDS_PASSWORD}@${process.env.RDS_HOSTNAME}:${process.env.RDS_PORT}/${process.env.RDS_DB_NAME}`;
+
+  const db = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false,

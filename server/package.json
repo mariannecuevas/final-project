@@ -2,10 +2,10 @@
   "name": "final-project-template-server",
   "version": "1.0.0",
   "type": "module",
-  "main": "server.js",
+  "main": "server.ts",
   "scripts": {
-    "start": "ts-node-esm server.js",
-    "dev": "nodemon server.js",
+    "start": "ts-node-esm server.ts",
+    "dev": "nodemon server.ts",
     "lint": "eslint . --ext ts,js --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
