@@ -3,7 +3,7 @@ import 'dotenv/config';
 import express from 'express';
 import pg from 'pg';
 import { ClientError, errorMiddleware, authMiddleware } from './lib/index.js';
-// import cors from 'cors';
+import cors from 'cors';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 
@@ -19,7 +19,7 @@ import jwt from 'jsonwebtoken';
 });
 
 const app = express();
-// app.use(cors());
+app.use(cors());
 // Create paths for static directories
 const reactStaticDir = new URL('../client/dist', import.meta.url).pathname;
 const uploadsStaticDir = new URL('public', import.meta.url).pathname;
