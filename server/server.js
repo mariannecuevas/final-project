@@ -12,7 +12,7 @@ const connectionString =
   `postgresql://${process.env.RDS_USERNAME}:${process.env.RDS_PASSWORD}@${process.env.RDS_HOSTNAME}:${process.env.RDS_PORT}/${process.env.RDS_DB_NAME}`;
 // eslint-disable-next-line no-unused-vars -- Remove when used
 const db = new pg.Pool({
-  connectionString,
+  connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false,
   },
@@ -463,5 +463,5 @@ app.get('*', (req, res) => res.sendFile(`${reactStaticDir}/index.html`));
 app.use(errorMiddleware);
 
 app.listen(process.env.PORT, () => {
-  process.stdout.write(`\n\napp listening on port ${process.env.PORT}\n\n`);
+  console.log(`\n\napp listening on port ${process.env.PORT}\n\n`);
 });
