@@ -1,3 +1,3 @@
-export * from './client-error.js';
-export * from './error-middleware.js';
-export * from './authorization-middleware.js';
+export * from './client-error.ts';
+export * from './error-middleware.ts';
+export * from './authorization-middleware.ts';
