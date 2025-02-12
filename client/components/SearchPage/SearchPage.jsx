@@ -14,7 +14,7 @@ function SearchPage({ accessToken }) {
 
   useEffect(() => {
     if (searchInput && accessToken) {
-      fetch(`http://localhost:8080/search/${searchInput}`, {
+      fetch(`/api/search/${searchInput}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -48,7 +48,7 @@ function SearchPage({ accessToken }) {
 
   const handleSubmit = async (reviewData) => {
     try {
-      const response = await fetch('http://localhost:8080/reviews', {
+      const response = await fetch('/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -16,7 +16,7 @@ function SignIn({ onSignIn }) {
 
     try {
       const authEndpoint = isSignInMode ? 'sign-in' : 'register';
-      const response = await fetch(`http://localhost:8080/${authEndpoint}`, {
+      const response = await fetch(`/api/${authEndpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -14,7 +14,7 @@ function AlbumReviews() {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await fetch('http://localhost:8080/reviews', {
+        const response = await fetch('/api/reviews', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },
@@ -45,7 +45,7 @@ function AlbumReviews() {
   const handleEditSubmit = async (reviewData) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/reviews/${selectedReview.reviewId}`,
+        `/api/reviews/${selectedReview.reviewId}`,
         {
           method: 'PATCH',
           headers: {
@@ -81,7 +81,7 @@ function AlbumReviews() {
   const handleDeleteSubmit = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8080/reviews/${selectedReview.reviewId}`,
+        `/api/reviews/${selectedReview.reviewId}`,
         {
           method: 'DELETE',
           headers: {

@@ -8,7 +8,7 @@ function BookmarksPage() {
 
   const fetchBookmarks = async () => {
     try {
-      const response = await fetch('http://localhost:8080/bookmarks', {
+      const response = await fetch('/api/bookmarks', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
@@ -39,7 +39,7 @@ function BookmarksPage() {
         setSelectedBookmark(album);
         setShowDeleteModal(true);
       } else {
-        await fetch('http://localhost:8080/bookmarks', {
+        await fetch('/api/bookmarks', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ function BookmarksPage() {
     try {
       if (selectedBookmark) {
         await fetch(
-          `http://localhost:8080/bookmarks/${selectedBookmark.bookmarkId}`,
+          `/api/bookmarks/${selectedBookmark.bookmarkId}`,
           {
             method: 'DELETE',
             headers: {

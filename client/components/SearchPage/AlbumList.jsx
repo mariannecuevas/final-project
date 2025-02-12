@@ -5,7 +5,7 @@ function AlbumList({ albums, onAlbumSelect }) {
 
   const fetchBookmarks = async () => {
     try {
-      const response = await fetch('http://localhost:8080/bookmarks', {
+      const response = await fetch('/api/bookmarks', {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('authToken')}`,
@@ -43,7 +43,7 @@ function AlbumList({ albums, onAlbumSelect }) {
         await Promise.all(
           albumsWithSameName.map(async (bookmarkedAlbum) => {
             await fetch(
-              `http://localhost:8080/bookmarks/${bookmarkedAlbum.bookmarkId}`,
+              `/api/bookmarks/${bookmarkedAlbum.bookmarkId}`,
               {
                 method: 'DELETE',
                 headers: {
@@ -59,7 +59,7 @@ function AlbumList({ albums, onAlbumSelect }) {
         );
         setBookmarkedAlbums(updatedAlbums);
       } else {
-        await fetch('http://localhost:8080/bookmarks', {
+        await fetch('/api/bookmarks', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
