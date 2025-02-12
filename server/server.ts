@@ -80,7 +80,7 @@ app.get('/api/spotify/token', async (req, res) => {
   }
 });
 
-app.get('/search/:searchInput', async (req, res) => {
+get('/api/search/:searchInput', async (req, res) => {
   const { searchInput } = req.params;
 
   try {
@@ -241,7 +241,7 @@ app.post('/api/sign-in', async (req, res) => {
   }
 });
 
-app.get('/reviews', authMiddleware, async (req, res) => {
+app.get('/api/reviews', authMiddleware, async (req, res) => {
   try {
     if (!req.user) {
       throw new ClientError(401, 'not logged in');
@@ -262,7 +262,7 @@ app.get('/reviews', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/reviews', authMiddleware, async (req, res) => {
+app.post('/api/reviews', authMiddleware, async (req, res) => {
   try {
     if (!req.user) {
       throw new ClientError(401, 'not logged in');
@@ -298,7 +298,7 @@ app.post('/reviews', authMiddleware, async (req, res) => {
   }
 });
 
-app.patch('/reviews/:reviewId', authMiddleware, async (req, res) => {
+app.patch('/api/reviews/:reviewId', authMiddleware, async (req, res) => {
   try {
     console.log('first', req.user);
     if (!req.user) {
@@ -340,7 +340,7 @@ app.patch('/reviews/:reviewId', authMiddleware, async (req, res) => {
   }
 });
 
-app.delete('/reviews/:reviewId', authMiddleware, async (req, res) => {
+app.delete('/api/reviews/:reviewId', authMiddleware, async (req, res) => {
   try {
     if (!req.user) {
       throw new ClientError(401, 'not logged in');
@@ -374,7 +374,7 @@ app.delete('/reviews/:reviewId', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/bookmarks', authMiddleware, async (req, res) => {
+app.get('/api/bookmarks', authMiddleware, async (req, res) => {
   try {
     console.log('first', req.user);
     if (!req.user) {
@@ -396,7 +396,7 @@ app.get('/bookmarks', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/bookmarks', authMiddleware, async (req, res) => {
+app.post('/api/bookmarks', authMiddleware, async (req, res) => {
   try {
     if (!req.user) {
       throw new ClientError(401, 'not logged in');
@@ -424,7 +424,7 @@ app.post('/bookmarks', authMiddleware, async (req, res) => {
   }
 });
 
-app.delete('/bookmarks/:bookmarkId', authMiddleware, async (req, res) => {
+app.delete('/api/bookmarks/:bookmarkId', authMiddleware, async (req, res) => {
   try {
     if (!req.user) {
       throw new ClientError(401, 'not logged in');
