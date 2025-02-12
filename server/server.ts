@@ -170,7 +170,7 @@ async function getArtistAlbums(artistId, accessToken) {
   return data.items;
 }
 
-app.post('/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -198,7 +198,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.post('/sign-in', async (req, res) => {
+app.post('/api/sign-in', async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
