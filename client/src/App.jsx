@@ -27,7 +27,7 @@ export default function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:5173/api/spotify/token')
+    fetch('/api/spotify/token')
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to fetch access token');
