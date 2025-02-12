@@ -4,7 +4,7 @@ on:
     branches:
       - pub
 
-  # Allow deploy to be triggered manually
+  # Allow deploy to be triggered manually.
   workflow_dispatch:
 
 jobs:
