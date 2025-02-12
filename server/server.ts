@@ -80,7 +80,7 @@ app.get('/api/spotify/token', async (req, res) => {
   }
 });
 
-get('/api/search/:searchInput', async (req, res) => {
+app.get('/api/search/:searchInput', async (req, res) => {
   const { searchInput } = req.params;
 
   try {
