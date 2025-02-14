@@ -82,7 +82,6 @@ app.get('/api/spotify/token', async (req, res) => {
 
 app.get('/api/search/:searchInput', async (req, res) => {
   const { searchInput } = req.params;
-
   try {
     if (!searchInput) {
       throw new Error('Search input is empty');
